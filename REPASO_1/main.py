@@ -26,3 +26,13 @@ def consultaEspecifica(id:int):
         if tar["id"] == id:
             return tareas[index]
     raise HTTPException(status_code=400, detail="La tarea no existe")
+
+#Endponit Agregar tarea
+@app.post('/tareas/', tags=['CRUD'])
+def agregarTareas(tarea:dict):
+    for tar in tareas:
+        if tar["id"] == tarea.get("id"):
+            raise HTTPException(status_code=400, detail="La tarea ya existe")
+    
+    tareas.append(tarea)
+    return tarea
