@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,HTTPException
 from typing import Optional
 
 app= FastAPI(
@@ -19,3 +19,10 @@ tareas=[
 def consultarTareas():
     return{"Las lista de tareas es la siguente": tareas}
 
+#Endponit Obtener tarea específica
+@app.get('/tareas/{id}', tags=['CRUD'])
+def consultaEspecifica(id:int):
+    for index, tar in enumerate(tareas):
+        if tar["id"] == id:
+            return tareas[index]
+    raise HTTPException(status_code=400, detail="La tarea no existe")
