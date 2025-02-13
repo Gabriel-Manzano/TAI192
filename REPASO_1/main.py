@@ -28,7 +28,7 @@ def consultaEspecifica(id:int):
     raise HTTPException(status_code=400, detail="La tarea no existe")
 
 #Endponit Agregar tarea
-@app.post('/tareas/', tags=['CRUD'])
+@app.post('/tareas', tags=['CRUD'])
 def agregarTareas(tarea:dict):
     for tar in tareas:
         if tar["id"] == tarea.get("id"):
@@ -36,3 +36,12 @@ def agregarTareas(tarea:dict):
     
     tareas.append(tarea)
     return tarea
+
+#Endpoint Actualizar tarea
+@app.put('/tareas/{id}', tags=['CRUD'])
+def actualizarTareas(id:int,tareaActualizada:dict):
+    for index, tar in enumerate(tareas):
+        if tar["id"] == id:
+            tareas[index].update(tareaActualizada)
+            return tareas[index]
+    raise HTTPException(status_code=400, detail="La tarea no existe")
