@@ -18,22 +18,23 @@ def mostrar():
 
 # Endpoint para agregar un conductor
 
-@app.post('/agregar/', response_model= modeloConductor, tags=['Agregar'])
-def agregar(conductor:modeloConductor):
+@app.post('/agregar/', response_model=modeloConductor, tags=['Agregar'])
+def agregar(conductor: modeloConductor):
     for con in conductores:
         if con["NoLicencia"] == conductor.NoLicencia:
             raise HTTPException(status_code=400, detail="El conductor ya existe!!!")
     
-    conductores.append(conductor)
+    conductores.model_dump()
     return conductor
+
 
 # Endpoint para editar un conductor
 
-@app.put('/editar{NoLicencia}', response_model= modeloConductor, tags=['Editar'])
-def editar(NoLicencia:str, conductorActualizado:modeloConductor):
+@app.put('/editar/{NoLicencia}', response_model=modeloConductor, tags=['Editar'])
+def editar(NoLicencia: str, conductorActualizado: modeloConductor):
     for index, con in enumerate(conductores):
         if con["NoLicencia"] == NoLicencia:
-            conductores[index]= conductorActualizado.model_dump()
+            conductores[index] = conductorActualizado.model_dump()
             return conductores[index]
     
     raise HTTPException(status_code=400, detail="El conductor no existe!!!")
