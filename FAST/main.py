@@ -3,6 +3,8 @@ from fastapi.responses import JSONResponse
 from typing import Optional,List
 from modelsPydantic import modeloUsuario, modeloAuth
 from genToken import createToken
+from DB.conexion import Session,engine,Base
+from models.modelsDB import User
 
 
 app= FastAPI(
@@ -11,13 +13,15 @@ app= FastAPI(
     version= '1.0.1'
 )
 
+Base.metadata.create_all(bind=engine)
+
 # BD ficticia
-usuarios=[
-    {"id": 1,"nombre":"ivan", "edad":37, "correo":"ivan@gmail.com"},
-    {"id": 2, "nombre":"isay", "edad":15, "correo":"isay@gmail.com"},
-    {"id": 3, "nombre":"luis", "edad":18, "correo":"luis@gmail.com"},
-    {"id": 4, "nombre":"ana", "edad":37, "correo":"ana@gmail.com"}
-]
+#usuarios=[
+#    {"id": 1,"nombre":"ivan", "edad":37, "correo":"ivan@gmail.com"},
+#    {"id": 2, "nombre":"isay", "edad":15, "correo":"isay@gmail.com"},
+#    {"id": 3, "nombre":"luis", "edad":18, "correo":"luis@gmail.com"},
+#    {"id": 4, "nombre":"ana", "edad":37, "correo":"ana@gmail.com"}
+#]
 
 # Endponit home
 @app.get('/', tags=['Hola Mundo'])
