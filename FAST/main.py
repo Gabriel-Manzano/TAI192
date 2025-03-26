@@ -1,5 +1,6 @@
 from fastapi import FastAPI,HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from typing import Optional,List
 from modelsPydantic import modeloUsuario, modeloAuth
 from genToken import createToken
@@ -39,9 +40,18 @@ def login(autorizacion:modeloAuth):
         return{"Aviso: Usuario no autorizado"}
 
 # Endponit CONSULTA TODOS
-@app.get('/TodosUsuarios', response_model= List[modeloUsuario], tags=['Operaciones CRUD'])
+@app.get('/TodosUsuarios', tags=['Operaciones CRUD'])
 def leerUsuarios():
-    return usuarios
+    db = Session()
+    try:
+        consulta = db.query(User).all()
+        return JSONResponse(content= jsonable_encoder(consulta))
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content ={"message": "Error al guardar el usuario", "Exception": str(e)})
+
+    finally:
+        db.close()
 
 # Endponit Agregar nuevos
 @app.post('/usuarios/', response_model= modeloUsuario, tags=['Operaciones CRUD'])
@@ -77,3 +87,21 @@ def eliminarUsuarios(id:int):
             usuarios.pop(index)
             return {"Los usuarios existentes restantes son": usuarios}
     raise HTTPException(status_code=400, detail="El usuario no existe")
+
+
+#Endpoint buscar por id
+@app.get('/usuario/{id}', tags =['Operaciones CRUD'])
+def buscarUno(id:int):
+    db = Session()
+    try:
+        cinsulta = db.query(User).filter(User.id == id).first()
+        if not consultaUno:
+            return JSONResponse (status_code=404, content= {"Mensaje":"Usuario no encontrado"})
+
+        return JSONResponse(content= jasonable_encoder(ConsultaUno))
+
+    except Exception as e:
+        return JSONResponse(status_code = 500, content={"message":"Error al consultar", "Exception": str(e)})
+        
+    finally:
+        db.close()
