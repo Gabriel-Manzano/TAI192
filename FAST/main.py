@@ -94,7 +94,7 @@ def eliminarUsuarios(id:int):
 def buscarUno(id:int):
     db = Session()
     try:
-        cinsulta = db.query(User).filter(User.id == id).first()
+        consulta = db.query(User).filter(User.id == id).first()
         if not consultaUno:
             return JSONResponse (status_code=404, content= {"Mensaje":"Usuario no encontrado"})
 
