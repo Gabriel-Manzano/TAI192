@@ -25,11 +25,13 @@ Base.metadata.create_all(bind=engine)
 #]
 
 # Endponit home
+
 @app.get('/', tags=['Hola Mundo'])
 def home():
     return {'hello':'Hello World'}
 
 # Endpoitn de autentificación
+
 @app.post('/auth', tags=['Autentificación'])
 def login(autorizacion:modeloAuth):
     if autorizacion.email == 'gabriel.mzn.r.xx66@example.com' and autorizacion.passw =='123456789':
@@ -39,7 +41,8 @@ def login(autorizacion:modeloAuth):
     else:
         return{"Aviso: Usuario no autorizado"}
 
-# Endponit CONSULTA TODOS
+# Endponit consultar todos
+
 @app.get('/TodosUsuarios', tags=['Operaciones CRUD'])
 def leerUsuarios():
     db = Session()
@@ -52,6 +55,29 @@ def leerUsuarios():
 
     finally:
         db.close()
+
+#Endpoint buscar por id
+
+@app.get('/usuario/{id}', tags=['Operaciones CRUD'])
+def buscarUno(id: int):
+    db = Session()
+    try:
+        usuario = db.query(User).filter(User.id == id).first()
+
+        if not usuario:
+
+            return JSONResponse(status_code=404, content={"message": "Usuario no encontrado"})
+
+        return JSONResponse(status_code=200, content=jsonable_encoder(usuario))
+
+    except Exception as e:
+
+        return JSONResponse(status_code=500, content={"message": "Error al consultar", "Exception": str(e)})
+    
+    finally:
+
+        db.close()
+
 
 # Endponit Agregar nuevos
 @app.post('/usuarios/', response_model= modeloUsuario, tags=['Operaciones CRUD'])
@@ -71,37 +97,68 @@ def agregarUsuarios(usuario:modeloUsuario):
 
 
 # Endponit Actualizar
-@app.put('/usuarios/{id}', response_model= modeloUsuario, tags=['Operaciones CRUD'])
-def actualizarUsuarios(id:int,usuarioActualizado:modeloUsuario):
-    for index, usr in enumerate(usuarios):
-        if usr["id"] == id:
-            usuarios[index]= usuarioActualizado.model_dump()
-            return usuarios[index]
-    raise HTTPException(status_code=400, detail="El usuario no existe")
+#@app.put('/usuarios/{id}', response_model= modeloUsuario, tags=['Operaciones CRUD'])
+#def actualizarUsuarios(id:int,usuarioActualizado:modeloUsuario):
+#    for index, usr in enumerate(usuarios):
+#        if usr["id"] == id:
+#            usuarios[index]= usuarioActualizado.model_dump()
+#            return usuarios[index]
+#    raise HTTPException(status_code=400, detail="El usuario no existe")
+
+# Endponit Actualizar
+@app.put('/usuarios/{id}', response_model=modeloUsuario, tags=['Operaciones CRUD'])
+def actualizarUsuarios(id: int, usuario: modeloUsuario):
+    try:
+        db = Session()
+        usuario_actualizado = db.query(User).filter(User.id == id).first()
+        
+        if not usuario_actualizado:
+
+            return JSONResponse(status_code=500, content={"message": "Usuario no encontrado"})
+
+        for key, value in usuario.model_dump().items():
+
+            setattr(usuario_actualizado, key, value)
+
+        db.commit()
+        db.refresh(usuario_actualizado)
+
+        return JSONResponse(status_code=200, content={"message": "Usuario actualizado", "usuario": usuario.model_dump()})
+
+    except Exception as e:
+
+        db.rollback()
+        return JSONResponse(status_code=500, content={"message": "Error al actualizar el usuario", "Exception": str(e)})
+    
+    finally: db.close()
+
+# Endponit Eliminar
+#@app.delete('/usuarios/{id}', tags=['Operaciones CRUD'])
+#def eliminarUsuarios(id:int):
+#    for index, usr in enumerate(usuarios):
+#        if usr["id"] == id:
+#            usuarios.pop(index)
+#            return {"Los usuarios existentes restantes son": usuarios}
+#    raise HTTPException(status_code=400, detail="El usuario no existe")
 
 # Endponit Eliminar
 @app.delete('/usuarios/{id}', tags=['Operaciones CRUD'])
-def eliminarUsuarios(id:int):
-    for index, usr in enumerate(usuarios):
-        if usr["id"] == id:
-            usuarios.pop(index)
-            return {"Los usuarios existentes restantes son": usuarios}
-    raise HTTPException(status_code=400, detail="El usuario no existe")
-
-
-#Endpoint buscar por id
-@app.get('/usuario/{id}', tags =['Operaciones CRUD'])
-def buscarUno(id:int):
-    db = Session()
+def eliminarUsuario(id: int):
     try:
-        consulta = db.query(User).filter(User.id == id).first()
-        if not consultaUno:
-            return JSONResponse (status_code=404, content= {"Mensaje":"Usuario no encontrado"})
+        db = Session()
+        usuario_eliminado = db.query(User).filter(User.id == id).first()
 
-        return JSONResponse(content= jasonable_encoder(ConsultaUno))
+        if not usuario_eliminado:
+            return JSONResponse(status_code=404, content={"message": "Usuario no encontrado"})
+
+        db.delete(usuario_eliminado)
+        db.commit()
+
+        return JSONResponse(status_code=200, content={"message": "Usuario eliminado"})
 
     except Exception as e:
-        return JSONResponse(status_code = 500, content={"message":"Error al consultar", "Exception": str(e)})
-        
+        db.rollback()
+        return JSONResponse(status_code=500, content={"message": "Error al eliminar el usuario", "Exception": str(e)})
+
     finally:
         db.close()
